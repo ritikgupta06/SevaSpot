@@ -1,29 +1,59 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { Link, useRouter } from 'expo-router';
-import { Eye, EyeOff, ArrowLeft } from 'lucide-react-native';
-import { colors } from '@/utils/colors';
-import Button from '@/components/common/Button';
+import React, { useState } from "react";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import { Link, useRouter } from "expo-router";
+import { Eye, EyeOff, ArrowLeft, ChevronDown } from "lucide-react-native";
+import { colors } from "@/utils/colors";
+import Button from "@/components/common/Button";
+import RNPickerSelect from "react-native-picker-select";
+
+// List of services for providers
+const SERVICES = [
+  { label: "Plumber", value: "plumber" },
+  { label: "Electrician", value: "electrician" },
+  { label: "Carpenter", value: "carpenter" },
+  { label: "Cleaner", value: "cleaner" },
+  { label: "Painter", value: "painter" },
+  { label: "AC Technician", value: "ac_technician" },
+  { label: "Gardener", value: "gardener" },
+  { label: "Mason", value: "mason" },
+];
 
 export default function SignupScreen() {
   const router = useRouter();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [userType, setUserType] = useState<"customer" | "provider">("customer");
+  const [service, setService] = useState<string | null>(null);
 
   const handleSignup = async () => {
     if (!name || !email || !password || !confirmPassword) {
-      setError('Please fill in all fields');
+      setError("Please fill in all fields");
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (userType === "provider" && !service) {
+      setError("Please select your service");
       return;
     }
 
@@ -32,44 +62,121 @@ export default function SignupScreen() {
 
     try {
       // Implement signup logic here
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated delay
-      router.replace('/(tabs)');
+      // You would send userType and service (if provider) to your backend
+      const userData = {
+        name,
+        email,
+        password,
+        userType,
+        ...(userType === "provider" && { service }),
+      };
+
+      console.log("Signup data:", userData); // For testing
+
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulated delay
+      router.replace("/(tabs)");
     } catch (err) {
-      setError('Failed to create account');
+      setError("Failed to create account");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.backButton}
             onPress={() => router.back()}
           >
             <ArrowLeft size={24} color={colors.text.primary} />
           </TouchableOpacity>
-          <Image 
-            source={{ uri: 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg' }}
+          <Image
+            source={{
+              uri: "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg",
+            }}
             style={styles.headerImage}
           />
           <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join our community of service providers and customers</Text>
+          <Text style={styles.subtitle}>
+            Join our community of service providers and customers
+          </Text>
         </View>
 
         <View style={styles.form}>
           {error && (
             <View style={styles.errorContainer}>
               <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
+          {/* User Type Selection */}
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>I am a</Text>
+            <View style={styles.userTypeContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.userTypeButton,
+                  userType === "customer" && styles.userTypeButtonActive,
+                ]}
+                onPress={() => setUserType("customer")}
+              >
+                <Text
+                  style={[
+                    styles.userTypeButtonText,
+                    userType === "customer" && styles.userTypeButtonTextActive,
+                  ]}
+                >
+                  Customer
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.userTypeButton,
+                  userType === "provider" && styles.userTypeButtonActive,
+                ]}
+                onPress={() => setUserType("provider")}
+              >
+                <Text
+                  style={[
+                    styles.userTypeButtonText,
+                    userType === "provider" && styles.userTypeButtonTextActive,
+                  ]}
+                >
+                  Service Provider
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Service Selection (only for providers) */}
+          {userType === "provider" && (
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Service You Provide</Text>
+              <View style={styles.pickerContainer}>
+                <RNPickerSelect
+                  onValueChange={(value) => setService(value)}
+                  items={SERVICES}
+                  placeholder={{
+                    label: "Select your service...",
+                    value: null,
+                    color: colors.text.tertiary,
+                  }}
+                  style={pickerSelectStyles}
+                  value={service}
+                  Icon={() => (
+                    <ChevronDown size={20} color={colors.text.tertiary} />
+                  )}
+                />
+              </View>
             </View>
           )}
 
@@ -173,6 +280,26 @@ export default function SignupScreen() {
   );
 }
 
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontFamily: "Poppins-Regular",
+    fontSize: 16,
+    color: colors.text.primary,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+  },
+  inputAndroid: {
+    fontFamily: "Poppins-Regular",
+    fontSize: 16,
+    color: colors.text.primary,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+  },
+  iconContainer: {
+    paddingRight: 16,
+  },
+});
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -182,18 +309,18 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingTop: 60,
     paddingBottom: 40,
   },
   backButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 60,
     left: 24,
     width: 40,
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: colors.background.secondary,
     borderRadius: 20,
   },
@@ -204,16 +331,16 @@ const styles = StyleSheet.create({
     borderRadius: 100,
   },
   title: {
-    fontFamily: 'Poppins-Bold',
+    fontFamily: "Poppins-Bold",
     fontSize: 24,
     color: colors.text.primary,
     marginBottom: 8,
   },
   subtitle: {
-    fontFamily: 'Poppins-Regular',
+    fontFamily: "Poppins-Regular",
     fontSize: 16,
     color: colors.text.secondary,
-    textAlign: 'center',
+    textAlign: "center",
     paddingHorizontal: 40,
   },
   form: {
@@ -226,22 +353,22 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   errorText: {
-    fontFamily: 'Poppins-Medium',
+    fontFamily: "Poppins-Medium",
     fontSize: 14,
     color: colors.error.main,
-    textAlign: 'center',
+    textAlign: "center",
   },
   inputContainer: {
     marginBottom: 16,
   },
   label: {
-    fontFamily: 'Poppins-Medium',
+    fontFamily: "Poppins-Medium",
     fontSize: 14,
     color: colors.text.secondary,
     marginBottom: 8,
   },
   input: {
-    fontFamily: 'Poppins-Regular',
+    fontFamily: "Poppins-Regular",
     fontSize: 16,
     color: colors.text.primary,
     backgroundColor: colors.background.secondary,
@@ -249,14 +376,14 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.background.secondary,
     borderRadius: 12,
   },
   passwordInput: {
     flex: 1,
-    fontFamily: 'Poppins-Regular',
+    fontFamily: "Poppins-Regular",
     fontSize: 16,
     color: colors.text.primary,
     padding: 16,
@@ -269,18 +396,45 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   loginContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
   loginText: {
-    fontFamily: 'Poppins-Regular',
+    fontFamily: "Poppins-Regular",
     fontSize: 14,
     color: colors.text.secondary,
   },
   loginLink: {
-    fontFamily: 'Poppins-Medium',
+    fontFamily: "Poppins-Medium",
     fontSize: 14,
     color: colors.primary.main,
+  },
+  userTypeContainer: {
+    flexDirection: "row",
+    backgroundColor: colors.background.secondary,
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  userTypeButton: {
+    flex: 1,
+    padding: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  userTypeButtonActive: {
+    backgroundColor: colors.primary.main,
+  },
+  userTypeButtonText: {
+    fontFamily: "Poppins-Medium",
+    fontSize: 16,
+    color: colors.text.secondary,
+  },
+  userTypeButtonTextActive: {
+    color: colors.text.primary,
+  },
+  pickerContainer: {
+    backgroundColor: colors.background.secondary,
+    borderRadius: 12,
   },
 });
