@@ -74,7 +74,7 @@ export default function SignupScreen() {
       console.log("Signup data:", userData); // For testing
 
       await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulated delay
-      router.replace("/(tabs)");
+      router.replace("/(provider)/home");
     } catch (err) {
       setError("Failed to create account");
     } finally {
