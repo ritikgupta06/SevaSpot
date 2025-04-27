@@ -5,13 +5,17 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Platform,
+  StatusBar,
 } from "react-native";
 import { colors } from "@/utils/colors";
 import { serviceRequests } from "./utils/providerData";
+import React from "react";
 
 export default function ProviderExplore() {
   return (
     <ScrollView style={styles.container}>
+      {Platform.OS === "android" && <StatusBar backgroundColor="black" />}
       <Text style={styles.header}>Nearby Service Requests</Text>
 
       {serviceRequests.map((request) => (
