@@ -10,9 +10,17 @@ import {
 } from "react-native";
 import { colors } from "@/utils/colors";
 import { providerProfile } from "./utils/providerData";
+import { useRouter } from "expo-router"; // 👈 Import router
 import React from "react";
 
 export default function ProviderProfile() {
+  const router = useRouter(); // 👈 Initialize router
+
+  const handleLogout = () => {
+    console.log("Logout");
+    router.replace("/login"); // 👈 Navigate to login page
+  };
+
   return (
     <ScrollView style={styles.container}>
       {Platform.OS === "android" && <StatusBar backgroundColor="black" />}
@@ -23,6 +31,11 @@ export default function ProviderProfile() {
           ⭐ {providerProfile.rating} ({providerProfile.reviews} reviews)
         </Text>
       </View>
+
+      {/* Logout Button */}
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutText}>Logout</Text>
+      </TouchableOpacity>
 
       {/* Occupations Section */}
       <View style={styles.section}>
@@ -110,6 +123,18 @@ const styles = StyleSheet.create({
   rating: {
     fontSize: 16,
     color: colors.text.secondary,
+  },
+  logoutButton: {
+    backgroundColor: colors.error.main,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  logoutText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 16,
   },
   section: {
     backgroundColor: colors.background.primary,
